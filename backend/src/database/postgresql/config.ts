@@ -10,7 +10,7 @@ type Config = {
 };
 export const config: Config = {
 	type: 'postgres',
-	url: 'postgres://tywdifrw:d3ZJbXFAvB6gM126AZUEdwltNib6Dzi2@flora.db.elephantsql.com/tywdifrw',
+	url: `${process.env.POSTGRES_URL}`,
 	entities: [Company, CompanyDetail],
 	synchronize: true,
 };

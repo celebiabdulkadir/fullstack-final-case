@@ -27,7 +27,9 @@ export class CompanyDetail {
 	consumptionAmount: number;
 	@Column({ nullable: false })
 	isDiscountPrice: boolean;
-	@ManyToOne(() => Company, (company) => company.companyDetails)
+	@ManyToOne(() => Company, (company) => company.companyDetails, {
+		onDelete: 'CASCADE',
+	})
 	@JoinColumn({ name: 'companyId' }) // This line is added
 	company: Company;
 	@Column({ nullable: false }) // This line is added
