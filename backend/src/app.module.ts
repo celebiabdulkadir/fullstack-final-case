@@ -15,11 +15,5 @@ import { TypeOrmExceptionFilter } from 'src/filters/typeorm-exception.filter';
 		CompanyModule,
 		CompanyDetailModule,
 	],
-	providers: [
-		{
-			provide: APP_FILTER,
-			useClass: TypeOrmExceptionFilter,
-		},
-	],
 })
 export class AppModule {}

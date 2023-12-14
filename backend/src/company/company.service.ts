@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Company } from 'src/entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class CompanyService {
@@ -14,38 +13,34 @@ export class CompanyService {
 	) {}
 
 	async createCompany(createCompanyDto: CreateCompanyDto): Promise<Company> {
-		const poll = this.companyRepository.create(createCompanyDto);
-		return this.companyRepository.save(poll);
+		try {
+			const company = this.companyRepository.create(createCompanyDto);
+			return this.companyRepository.save(company);
+		} catch (error) {
+			throw new Error(error);
+		}
 	}
 
 	async getAllCompany(): Promise<Company[]> {
-		return this.companyRepository.find();
+		try {
+			return this.companyRepository.find();
+		} catch (error) {
+			throw new Error(error);
+			Logger.error(error);
+		}
 	}
 	async deleteCompany(id: string): Promise<void> {
-		const foundId = await this.getCompanyById(id);
-
-		if (!foundId) {
-			throw new Error('companyId is not provided');
+		try {
+			await this.companyRepository.delete(id);
+		} catch (error) {
+			if (error.code === '22P02') {
+				throw new NotFoundException(error);
+			} else {
+				throw new Error(error);
+			}
 		}
-		await this.companyRepository.delete(id);
 	}
-
-	async updateCompany(updateCompanyDto: UpdateCompanyDto): Promise<Company> {
-		Logger.log(updateCompanyDto.companyId);
-		if (!updateCompanyDto.companyId) {
-			throw new Error('companyId is not provided');
-		}
-
-		const toUpdate = await this.companyRepository.findOneBy({
-			companyId: updateCompanyDto.companyId,
-		});
-
-		const updated = Object.assign(toUpdate, updateCompanyDto);
-		return this.companyRepository.save(updated);
-	}
-
 	async getCompanyById(companyId: string): Promise<Company> {
-		Logger.log(companyId);
 		if (!companyId) {
 			throw new Error('companyId is not provided');
 		}
@@ -54,14 +49,23 @@ export class CompanyService {
 			const found = await this.companyRepository.findOneBy({
 				companyId: companyId,
 			});
-
-			if (!found) {
-				throw new NotFoundException(HttpStatus.NOT_FOUND);
-			}
-
 			return found;
 		} catch (error) {
-			throw new Error('server error');
+			if (error.code === '22P02') {
+				throw new NotFoundException(error);
+			} else {
+				throw new Error(error);
+			}
+		}
+	}
+	async updateCompany(updateCompanyDto: UpdateCompanyDto): Promise<Company> {
+		const toUpdate = await this.getCompanyById(updateCompanyDto.companyId);
+		try {
+			const updated = Object.assign(toUpdate, updateCompanyDto);
+			return this.companyRepository.save(updated);
+		} catch (error) {
+			Logger.error(error);
+			throw new Error(error);
 		}
 	}
 }

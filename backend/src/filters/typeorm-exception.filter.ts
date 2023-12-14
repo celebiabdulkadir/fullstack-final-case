@@ -3,32 +3,49 @@ import {
 	Catch,
 	ArgumentsHost,
 	HttpException,
+	HttpStatus,
+	NotFoundException,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-@Catch(QueryFailedError)
+@Catch(QueryFailedError, NotFoundException)
 export class TypeOrmExceptionFilter implements ExceptionFilter {
-	catch(exception: QueryFailedError, host: ArgumentsHost) {
+	catch(
+		exception: QueryFailedError | NotFoundException | TypeError,
+		host: ArgumentsHost
+	) {
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse();
 		const request = ctx.getRequest();
 		let status = 500;
 		let message = 'Internal Server Error';
 
-		switch (exception.driverError.code) {
-			case '23505': // Duplicate entry
-				status = 400;
-				message = 'Duplicate entry. The name already exists.';
-				break;
-			case '23503': // Foreign key violation
-				status = 400;
-				message = 'Cannot delete or update record because it is in use.';
-				break;
-			case '22P02': // Invalid input syntax
-				status = 400;
-				message = 'Invalid input syntax.';
-				break;
-			// Add more cases as needed
+		if (exception instanceof NotFoundException) {
+			if (exception.message.includes('invalid input syntax')) {
+				message = 'please check your input';
+			} else {
+				message = exception.message;
+			}
+			status = 404;
+		} else if (
+			exception instanceof QueryFailedError ||
+			exception instanceof TypeError
+		) {
+			status = 400;
+			if (
+				exception.message.includes(
+					'duplicate key value violates unique constraint'
+				)
+			) {
+				message = 'Duplicate key value detected';
+			} else if (exception.message.includes('invalid input syntax')) {
+				message = 'please check your input';
+			} else {
+				message = exception.message;
+			}
+		} else {
+			status = 500;
+			message = message;
 		}
 
 		response.status(status).json({

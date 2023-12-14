@@ -35,11 +35,11 @@ export class AuthController {
 	) {
 		return await this.usersService.create(createUserDto);
 	}
-	@UseGuards(JwtAuthGuard)
-	@Get('getuser/:email')
-	async getUser(@Request() req) {
-		return await this.usersService.findOne(req.params.email);
-	}
+	// @UseGuards(JwtAuthGuard)
+	// @Get('getuser/:email')
+	// async getUser(@Request() req) {
+	// 	return await this.usersService.findOne(req.params.email);
+	// }
 
 	@UseGuards(RefreshJwtGuard)
 	@Post('refresh')
