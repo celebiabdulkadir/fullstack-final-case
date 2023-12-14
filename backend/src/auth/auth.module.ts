@@ -10,16 +10,11 @@ import { AuthController } from './auth.controller';
 import { UsersService } from 'src/users/users.service';
 import { RefreshJwtStrategy } from './strategies/refreshToken.strategy';
 import { RefreshJwtGuard } from './guards/refresh-jwt-auth.guard';
+import { AccessTokenModule } from './accesstoken.module';
+import { RefreshTokenModule } from './refreshtoken.module';
 
 @Module({
-	imports: [
-		UsersModule,
-		PassportModule,
-		JwtModule.register({
-			secret: jwtConstants.secret,
-			signOptions: { expiresIn: '3600s' },
-		}),
-	],
+	imports: [UsersModule, PassportModule, AccessTokenModule, RefreshTokenModule],
 	providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
 	exports: [AuthService],
 	controllers: [AuthController],
