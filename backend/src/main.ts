@@ -9,7 +9,11 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	app.useLogger(new Logger('debug'));
 	app.enableCors({
-		origin: ['http://localhost:5000', 'http://localhost:3000'],
+		origin: [
+			'http://localhost:5000',
+			'http://localhost:3000',
+			'https://fullstack-final-case-5bv1.vercel.app',
+		],
 		credentials: true,
 	});
 	app.use(cookieParser());
