@@ -5,10 +5,10 @@ import { SearchService } from './elasticsearch.service';
 @Module({
 	imports: [
 		ElasticsearchModule.register({
-			node: 'https://my-deployment-818398.es.us-central1.gcp.cloud.es.io',
+			node: process.env.ELASTIC_SEARCH_NODE,
 			auth: {
-				username: 'elastic',
-				password: 'TN5iMUf7RiNKC8hNVyddGxVW',
+				username: process.env.ELASTIC_SEARCH_USERNAME,
+				password: process.env.ELASTIC_SEARCH_PASSWORD,
 			},
 		}),
 	],

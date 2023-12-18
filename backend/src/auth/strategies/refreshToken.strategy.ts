@@ -1,6 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConstants } from '../constants';
+import { Logger } from '@nestjs/common';
 
 export class RefreshJwtStrategy extends PassportStrategy(
 	Strategy,
@@ -10,6 +11,7 @@ export class RefreshJwtStrategy extends PassportStrategy(
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request) => {
+					Logger.log('request', request.cookies);
 					return request?.cookies?.refreshToken;
 				},
 			]),
@@ -19,6 +21,12 @@ export class RefreshJwtStrategy extends PassportStrategy(
 	}
 
 	async validate(payload: any) {
-		return { user: payload.sub, username: payload.username };
+		try {
+			Logger.log('refresh payload', payload);
+			return { userId: payload.sub, username: payload.username };
+		} catch (error) {
+			Logger.error('Error validating refresh token', error);
+			throw error;
+		}
 	}
 }

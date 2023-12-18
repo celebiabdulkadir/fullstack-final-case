@@ -14,19 +14,36 @@ export class UsersService {
 		return await this.searchService.searchUsers(email);
 	}
 	async getAllUsers() {
-		return await this.searchService.getAllUsers();
+		try {
+			return await this.searchService.getAllUsers();
+		} catch (error) {
+			Logger.error(error);
+		}
 	}
 
 	async create(user: RegisterUserDto) {
 		const hashedPassword = await bcrypt.hash(user.password, 10);
 		const userWithHashedPassword = { ...user, password: hashedPassword };
 
-		return await this.searchService.indexUser(userWithHashedPassword);
+		try {
+			return await this.searchService.indexUser(userWithHashedPassword);
+		} catch (error) {
+			Logger.error(error);
+		}
 	}
 	async deleteUsers(query: string) {
-		return await this.searchService.deleteUsers(query);
+		try {
+			return await this.searchService.deleteUsers(query);
+		} catch (error) {
+			Logger.error(error);
+		}
 	}
 	async deleteAllUsers() {
-		return await this.searchService.deleteAllUsers();
+		try {
+			return await this.searchService.deleteAllUsers();
+		} catch (error) {
+			Logger.error(error);
+			throw new Error(error);
+		}
 	}
 }

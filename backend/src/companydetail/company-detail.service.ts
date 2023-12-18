@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+	Injectable,
+	Logger,
+	HttpStatus,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompanyDetail } from 'src/entities/companydetail.entity';
@@ -21,7 +26,6 @@ export class CompanyDetailService {
 		if (!createCompanyDto.companyId) {
 			throw new Error('Company ID is not defined');
 		}
-		Logger.log(createCompanyDto.companyId);
 		const company = await this.companyRepository.findOneBy({
 			companyId: createCompanyDto.companyId,
 		});
@@ -42,19 +46,52 @@ export class CompanyDetailService {
 	}
 
 	async getAllCompanyDetail(): Promise<CompanyDetail[]> {
-		return this.companyDetailRepository.find();
+		try {
+			return this.companyDetailRepository.find();
+		} catch (error) {
+			throw new Error(error);
+		}
 	}
-	async deleteCompany(id: number): Promise<void> {
-		await this.companyDetailRepository.delete(id);
+	async deleteCompanyDetail(id: string): Promise<void> {
+		try {
+			await this.companyDetailRepository.delete(id);
+		} catch (error) {
+			if (error.code === '22P02') {
+				throw new NotFoundException(error);
+			} else {
+				throw new Error(error);
+			}
+		}
 	}
-
+	async getCompanyDetailById(companyDetailId: string): Promise<CompanyDetail> {
+		if (!companyDetailId) {
+			throw new Error('companyDetailId is not provided');
+		}
+		try {
+			const found = await this.companyDetailRepository.findOneBy({
+				companyDetailId: companyDetailId,
+			});
+			return found;
+		} catch (error) {
+			if (error.code === '22P02') {
+				throw new NotFoundException(error);
+			} else {
+				throw new Error(error);
+			}
+		}
+	}
 	async updateCompanyDetail(
 		updateCompanyDetailDto: UpdateCompanyDetailDto
 	): Promise<CompanyDetail> {
-		const toUpdate = await this.companyDetailRepository.findOne(
-			updateCompanyDetailDto.companyDetailId as any
+		const toUpdate = await this.getCompanyDetailById(
+			updateCompanyDetailDto.companyDetailId
 		);
-		const updated = Object.assign(toUpdate, updateCompanyDetailDto);
-		return this.companyDetailRepository.save(updated);
+		try {
+			const updated = Object.assign(toUpdate, updateCompanyDetailDto);
+			return this.companyDetailRepository.save(updated);
+		} catch (error) {
+			Logger.error(error);
+			return error;
+		}
 	}
 }

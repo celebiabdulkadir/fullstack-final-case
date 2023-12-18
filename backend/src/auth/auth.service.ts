@@ -5,11 +5,13 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Logger } from '@nestjs/common';
 import { Response } from 'express';
+import { Inject } from '@nestjs/common';
 @Injectable()
 export class AuthService {
 	constructor(
 		private readonly userService: UsersService,
-		private jwtService: JwtService
+		@Inject('ACCESS_TOKEN_JWT_SERVICE') private jwtAccessService: JwtService,
+		@Inject('REFRESH_TOKEN_JWT_SERVICE') private jwtRefreshService: JwtService
 	) {}
 
 	async validateUser(newUser: LoginUserDto) {
@@ -32,27 +34,43 @@ export class AuthService {
 			},
 		};
 
-		const refreshToken = this.jwtService.sign(payload, { expiresIn: '1d' });
+		const refreshToken = this.jwtRefreshService.sign(payload, {
+			expiresIn: '1w',
+		});
 
 		// Set the refresh token as an HttpOnly cookie
-		response.cookie('refreshToken', refreshToken, { httpOnly: true });
+		response.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			sameSite: 'none', // 'strict', 'lax', or 'none'
+			secure: true,
+		});
 
 		return {
 			...user,
-			accessToken: this.jwtService.sign(payload, { expiresIn: '15m' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
+		};
+	}
+
+	async logout(response: Response) {
+		// Remove the refresh token cookie
+		response.clearCookie('refreshToken');
+
+		return {
+			message: 'success',
 		};
 	}
 
 	async refreshToken(user: any) {
+		Logger.log('user', user);
 		const payload = {
-			email: user.email,
+			email: user?.email,
 			sub: {
-				name: user.name,
+				email: user?.email,
 			},
 		};
 
 		return {
-			accessToken: this.jwtService.sign(payload, { expiresIn: '15m' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
 		};
 	}
 }
