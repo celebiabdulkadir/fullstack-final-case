@@ -10,7 +10,7 @@ import { jwtConstants } from './constants';
 			useFactory: async () => {
 				return new JwtService({
 					secret: jwtConstants.secret,
-					signOptions: { expiresIn: '15m' },
+					signOptions: { expiresIn: '15s' },
 				});
 			},
 		},

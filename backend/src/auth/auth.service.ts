@@ -39,15 +39,29 @@ export class AuthService {
 		});
 
 		// Set the refresh token as an HttpOnly cookie
-		response.cookie('refreshToken', refreshToken, { httpOnly: true });
+		response.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			sameSite: 'none', // 'strict', 'lax', or 'none'
+			secure: true,
+		});
 
 		return {
 			...user,
-			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15m' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
+		};
+	}
+
+	async logout(response: Response) {
+		// Remove the refresh token cookie
+		response.clearCookie('refreshToken');
+
+		return {
+			message: 'success',
 		};
 	}
 
 	async refreshToken(user: any) {
+		Logger.log('user', user);
 		const payload = {
 			email: user?.email,
 			sub: {
@@ -56,7 +70,7 @@ export class AuthService {
 		};
 
 		return {
-			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15m' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
 		};
 	}
 }
