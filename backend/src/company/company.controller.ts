@@ -14,9 +14,7 @@ import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { Update } from '@reduxjs/toolkit';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { TypeOrmExceptionFilter } from 'src/filters/typeorm-exception.filter';
 import { IdParam } from 'src/idParamspipeline/idParam';
 @UseGuards(JwtAuthGuard)
 @Controller('company')
