@@ -1,10 +1,12 @@
 {
+  "version": 3,
   "builds": [
     {
-      "src": "package.json",
+      "src": "src/main.ts",
       "use": "@vercel/node",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "includeFiles": "dist/**/*"
       }
     }
   ]
