@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompanyModule } from './company/company.module';
 import { CompanyDetailModule } from './companydetail/company-detail.module';
 import { config } from './database/postgresql/config';
-import { APP_FILTER } from '@nestjs/core';
-import { TypeOrmExceptionFilter } from 'src/filters/typeorm-exception.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
 	imports: [
 		TypeOrmModule.forRoot(config),
@@ -14,6 +14,10 @@ import { TypeOrmExceptionFilter } from 'src/filters/typeorm-exception.filter';
 		UsersModule,
 		CompanyModule,
 		CompanyDetailModule,
+		ServeStaticModule.forRoot({
+			rootPath: join(__dirname, '..', 'client', 'dist'),
+			exclude: ['/backend*'],
+		}),
 	],
 })
 export class AppModule {}

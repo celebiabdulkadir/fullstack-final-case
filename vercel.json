@@ -1,0 +1,28 @@
+{
+  "version": "2",
+  "github": {
+    "enabled": true
+  },
+  "builds": [
+    {
+      "src": "/backend/src/main.ts",
+      "use": "@now/node-server"
+    },
+    {
+      "src": "/frontend/dist/*",
+      "use": "@now/static-build"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/backend/src/main.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    }
+  ]
+}
