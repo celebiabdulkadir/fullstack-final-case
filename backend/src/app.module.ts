@@ -15,7 +15,7 @@ import { join } from 'path';
 		CompanyModule,
 		CompanyDetailModule,
 		ServeStaticModule.forRoot({
-			rootPath: join(__dirname, '..', 'client', 'dist'),
+			rootPath: join(__dirname, '../..', 'frontend', 'dist'),
 			exclude: ['/backend*'],
 		}),
 	],
