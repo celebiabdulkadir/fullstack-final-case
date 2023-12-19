@@ -1,16 +1,16 @@
 {
   "version": 2,
   "github": {
-    "enabled": true
+    "enabled": false
   },
   "builds": [
     {
       "src": "/backend/src/main.ts",
-      "use": "@now/node-server"
+      "use": "@vercel/node"
     },
     {
       "src": "/frontend/dist/*",
-      "use": "@now/static-build"
+      "use": "@now/static"
     }
   ],
   "routes": [
