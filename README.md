@@ -1,73 +1,120 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+<img width="300" src="/frontend/public/logo.png" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Company Management System
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a full-stack application built with [Nest.js](https://nestjs.com/) and [Vue.js](https://vuejs.org/).
+
+## Authentication
+
+This application uses JSON Web Tokens (JWT) for authentication. When a user logs in, they receive two tokens: an access token and a refresh token.
+
+### Access Token
+
+The access token is short-lived and used to make authenticated requests to the API. It is sent in the `Authorization` header of each request.
+
+### Refresh Token
+
+The refresh token is long-lived and used to get a new access token when the current one expires. For security, it is stored in a HttpOnly cookie in the user's browser, which protects it from being accessed by client-side scripts. The refresh token is sent to the server to issue a new access token when the current one expires.
+
+When the access token expires, the application automatically uses the refresh token to get a new access token, allowing the user to continue using the application without needing to log in again.
+
+## Features
+
+This application includes the following pages:
+
+- Home
+- Register
+- Login
+- Department Management
+- Company Management
+
+### Home
+
+The Home page is the landing page of the application. It provides an overview of the application and its features. Users can navigate to other parts of the application from here.
+
+<p align="center">
+<img width="700" src="/frontend/public/landingpage.png" />
+</p>
+
+### Register
+
+The Register page allows new users to create an account in the application. Users need to provide their details such as name, email, and password to register. After successful registration, users will be able to log in to the application with their credentials.
+
+### Login
+
+The Login page allows existing users to log in to the application. Users need to provide their registered email and password. After successful login, users will be able to access the features of the application.
+
+### Department Management
+
+In the Department Management page, you can add, edit, and delete departments. To add a new department, click on the "Add Department" button, fill in the department's details in the form, and click "Save".
+
+<p align="center">
+<img width="700" src="/frontend/public/departmentpage.png" />
+</p>
+
+### Company Management
+
+In the Company Management page, you can add, edit, and delete companies. To add a new company, click on the "Add Company" button, fill in the company's details in the form, and click "Save".
+
+<p align="center">
+<img width="700" src="/frontend/public/companies.png" />
+</p>
+
+### Multilingual Support
+
+This application supports multiple languages. You can switch between languages using the language selector in the application.
+
+### Responsive Design
+
+The application is designed to be responsive and provides an optimal viewing and interaction experience across a wide range of devices. Whether you're on a desktop, laptop, tablet, or smartphone, you'll be able to use all the features of the application with ease.
+
+## Tech Stack
+
+- Back-end: Nest.js
+- Front-end: Vue.js
+- Database: (Postgresql,elasticsearh)
+- ORM: (Typorm)
+- Other technologies: (Vuefity)
 
 ## Installation
 
+First, install the dependencies for the back-end:
+
 ```bash
-$ yarn install
+cd backend
+yarn
+```
+
+Then, install the dependencies for the front-end:
+
+```bash
+cd frontend
+yarn
 ```
 
 ## Running the app
 
+To run the back-end:
+
 ```bash
+cd backend
 # development
-$ yarn run start
+yarn start
 
 # watch mode
-$ yarn run start:dev
+yarn  start:dev
 
 # production mode
-$ yarn run start:prod
+yarn start:prod
 ```
 
-## Test
+To run the front-end:
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+cd frontend
+yarn dev
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

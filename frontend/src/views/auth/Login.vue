@@ -4,17 +4,32 @@ import { ref } from "vue";
 import * as yup from "yup";
 import axios from "axios";
 import { useAppStore } from "@/store/app";
-
+import { useLocale } from "vuetify";
 import { useRouter } from "vue-router";
-const store = useAppStore();
+import LanguageSwitcher from "@/components/common/LanguageSwitcher.vue";
+const { current, t } = useLocale();
 const router = useRouter();
 const snackbar = ref(false);
 const text = ref("My timeout is set to 2000.");
 const color = ref("blue-gray");
 const timeout = ref(2000);
+const loading = ref(false);
 const schema = yup.object({
-  email: yup.string().email().required().label("E-mail"),
-  password: yup.string().min(6).required().label("Password"),
+  email: yup
+    .string()
+    .trim()
+    .email(t("email_invalid"))
+    .required(t("email_required"))
+    .label(t("email")),
+  password: yup
+    .string()
+    .required(t("password_required"))
+    .min(8, t("password_min"))
+    .matches(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/,
+      t("password_complexity")
+    )
+    .label(t("password")),
 });
 
 const { defineField, handleSubmit, resetForm } = useForm({
@@ -33,21 +48,21 @@ const [email, emailProps] = defineField("email", vuetifyConfig);
 const [password, passwordProps] = defineField("password", vuetifyConfig);
 
 const onSubmit = handleSubmit(async (values) => {
+  loading.value = true;
   try {
     const user = await login(values);
-
     localStorage.setItem("accessToken", user.accessToken);
     localStorage.setItem("user", JSON.stringify(user));
     snackbar.value = true;
     color.value = "green";
-    text.value = "User Logged in successfully";
-    // router.push("/");
-    console.log("Submitted with", user);
+    text.value = t("login_success");
     setTimeout(() => {
       router.push("/");
-    }, 1000);
+    }, 500);
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -62,19 +77,19 @@ const login = async (values) => {
       { withCredentials: true }
     );
 
-    if (response.status !== 201) {
-      snackbar.value = true;
-      color.value = "red";
-      text.value = "Something went wrong";
-      return;
-    }
-
     return response.data;
   } catch (error) {
     console.log(error);
-    snackbar.value = true;
-    color.value = "red";
-    text.value = error.response.data.message;
+    if (error.response.status === 404) {
+      snackbar.value = true;
+      color.value = "red";
+      text.value = t("user_not_found");
+      return;
+    } else {
+      snackbar.value = true;
+      color.value = "red";
+      text.value = t("something_went_wrong");
+    }
   }
 };
 </script>
@@ -91,21 +106,35 @@ const login = async (values) => {
 
       <template v-slot:actions>
         <v-btn :color="color" variant="text" @click="snackbar = false">
-          Close
+          {{ t("close") }}
         </v-btn>
       </template>
     </v-snackbar>
+    <Spinner v-if="loading"></Spinner>
     <v-container>
       <v-row justify="center">
         <v-col cols="12" lg="6">
-          <v-form @submit="onSubmit" class="px-4 w-100">
-            <h1 class="text-center mb-10">Login</h1>
+          <v-form @submit="onSubmit" class="px-4 w-100 shadow-md">
+            <div class="d-flex justify-center w-100">
+              <div class="w-50 d-flex justify-center">
+                <v-img
+                  :width="80"
+                  aspect-ratio="16/9"
+                  cover
+                  src="/logo.png"
+                ></v-img>
+              </div>
+            </div>
+            <div class="d-flex justify-space-between align-center pb-12">
+              <h1 class="text-center">{{ t("login") }}</h1>
+              <LanguageSwitcher />
+            </div>
 
             <v-text-field
               class="mb-4"
               v-model="email"
               v-bind="emailProps"
-              label="Email"
+              :label="t('email')"
               type="email"
             />
 
@@ -113,19 +142,16 @@ const login = async (values) => {
               class="mb-4"
               v-model="password"
               v-bind="passwordProps"
-              label="Password"
+              :label="t('password')"
               type="password"
             />
 
             <div class="mb-4">
-              <v-btn color="primary" type="submit"> Login </v-btn>
-              <v-btn color="outline" class="ml-4" @click="resetForm()">
-                Reset
-              </v-btn>
+              <v-btn color="primary" type="submit"> {{ t("login") }} </v-btn>
             </div>
-            <router-link to="/auth/register"
-              >Don't you have an account ? Register here</router-link
-            >
+            <router-link to="/auth/register">{{
+              t("direct_register")
+            }}</router-link>
           </v-form></v-col
         >
       </v-row>

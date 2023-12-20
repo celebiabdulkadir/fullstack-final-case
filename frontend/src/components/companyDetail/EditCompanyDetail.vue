@@ -15,11 +15,13 @@ import { useForm } from "vee-validate";
 import * as yup from "yup";
 import axios from "axios";
 import { formatDate, parseDate, convertToStartOfDay } from "@/utils/dateFormat";
+import { useLocale } from "vuetify";
+const { current, t } = useLocale();
 const snackbar = ref(false);
 const text = ref("My timeout is set to 2000.");
 const color = ref("blue-gray");
 const timeout = ref(2000);
-
+const loading = ref(false);
 const menu1 = ref(false);
 const menu2 = ref(false);
 const vuetifyConfig = (state) => ({
@@ -27,73 +29,102 @@ const vuetifyConfig = (state) => ({
     "error-messages": state.errors,
   },
 });
-
 const schema = yup.object({
-  companyName: yup.string().required().label("Company Name"),
-  employerNumber: yup.number().required().label("Employee Number"),
-  subscriptionStart: yup.string().required().label("Start Date"),
-  subscriptionEnd: yup.string().required().label("End Date"),
-  isFree: yup.boolean().required().label("Is Free"),
+  departmentName: yup
+    .string()
+    .required(t("department_name_required"))
+    .label(t("department_name")),
+  consumptionAmount: yup
+    .number()
+    .transform((value, originalValue) => {
+      return originalValue === "" || isNaN(originalValue) ? undefined : value;
+    })
+    .required(t("consumption_amount_required"))
+    .label(t("consumption_amount")),
+  consumptionFee: yup
+    .number()
+    .transform((value, originalValue) => {
+      return originalValue === "" || isNaN(originalValue) ? undefined : value;
+    })
+    .required(t("consumption_fee_required"))
+    .label(t("consumption_fee")),
+  startTime: yup
+    .string()
+    .required(t("start_time_required"))
+    .label(t("start_time")),
+  endTime: yup.string().required(t("end_time_required")).label(t("end_time")),
+  isDiscountPrice: yup
+    .boolean()
+    .required(t("discount_status_required"))
+    .label(t("discount_status")),
 });
 
 const { defineField, handleSubmit, resetForm, setValues } = useForm({
   validationSchema: schema,
 });
-const [companyName, companyNameProps] = defineField(
-  "companyName",
+const [departmentName, departmentNameProps] = defineField(
+  "departmentName",
   vuetifyConfig
 );
-const [employerNumber, employerNumberProps] = defineField(
-  "employerNumber",
+const [consumptionAmount, consumptionAmountProps] = defineField(
+  "consumptionAmount",
   vuetifyConfig
 );
-const [subscriptionStart, subscriptionStartProps] = defineField(
-  "subscriptionStart",
+const [consumptionFee, consumptionFeeProps] = defineField(
+  "consumptionFee",
   vuetifyConfig
 );
-const [subscriptionEnd, subscriptionEndProps] = defineField(
-  "subscriptionEnd",
+const [startTime, startTimeProps] = defineField("startTime", vuetifyConfig);
+const [endTime, endTimeProps] = defineField("endTime", vuetifyConfig);
+const [isDiscountPrice, isDiscountPriceProps] = defineField(
+  "isDiscountPrice",
   vuetifyConfig
 );
-const [isFree, isFreeProps] = defineField("isFree", vuetifyConfig);
 
 const props = defineProps({
   dialog: Boolean,
-  company: String,
+  companyId: String,
+  companyDetail: String,
 });
-const emit = defineEmits(["closeEditDialog", "getAllCompanies"]);
+const emit = defineEmits(["closeEditDialog", "getAllCompanyDetails"]);
 
-const getCompanyById = async () => {
+const getCompanyDetailById = async () => {
+  loading.value = true;
   try {
-    const response = await axios.get(`/company/${props.company}`);
+    const response = await axios.get(`/companydetail/${props.companyDetail}`);
 
     setValues({
-      companyName: response.data.companyName,
-      employerNumber: response.data.employerNumber,
-      subscriptionStart: convertToStartOfDay(response.data.subscriptionStart),
-      subscriptionEnd: convertToStartOfDay(response.data.subscriptionEnd),
-      isFree: response.data.isFree,
+      departmentName: response.data.departmentName,
+      consumptionAmount: response.data.consumptionAmount,
+      consumptionFee: response.data.consumptionFee,
+      startTime: convertToStartOfDay(response.data.usagePeriod.startTime),
+      endTime: convertToStartOfDay(response.data.usagePeriod.endTime),
+      isDiscountPrice: response.data.isDiscountPrice,
     });
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
 watch(
   () => props.dialog,
   () => {
-    if (props.dialog) getCompanyById();
+    if (props.dialog) getCompanyDetailById();
   }
 );
 const editCompany = async (values) => {
   try {
-    values.subscriptionStart = subscriptionStart.value.toISOString();
-    values.subscriptionEnd = subscriptionEnd.value.toISOString();
-    values.employerNumber = parseInt(values.employerNumber);
+    values.startTime = startTime.value.toISOString();
+    values.endTime = endTime.value.toISOString();
+    values.consumptionAmount = parseInt(values.consumptionAmount);
+    values.consumptionFee = parseInt(values.consumptionFee);
 
-    const response = await axios.put("/company", {
+    const response = await axios.put("/companydetail", {
       ...values,
-      companyId: props.company,
+      companyId: props.companyId,
+      companyDetailId: props.companyDetail,
     });
 
     return response;
@@ -101,37 +132,40 @@ const editCompany = async (values) => {
     console.log(error);
   }
 };
-const subscriptionStartFormatted = computed({
-  get: () => formatDate(subscriptionStart.value),
-  set: (value) => (subscriptionStart.value = parseDate(value)),
+const startTimeFormatted = computed({
+  get: () => formatDate(startTime.value),
+  set: (value) => (startTime.value = parseDate(value)),
 });
 
-const subscriptionEndFormatted = computed({
-  get: () => formatDate(subscriptionEnd.value),
-  set: (value) => (subscriptionEnd.value = parseDate(value)),
+const endTimeFormatted = computed({
+  get: () => formatDate(endTime.value),
+  set: (value) => (endTime.value = parseDate(value)),
 });
 
 const onSubmit = handleSubmit(async (values) => {
+  loading.value = true;
   try {
     const response = await editCompany(values);
     console.log(response);
 
     if (response?.status === 200) {
       snackbar.value = true;
-      text.value = "User registered successfully";
+      text.value = t("department_updated");
       closeDialog();
-      emit("getAllCompanies");
+      emit("getAllCompanyDetails");
     } else {
       snackbar.value = true;
       color.value = "red";
-      text.value = "Something went wrong";
+      text.value = t("something_went_wrong");
       return;
     }
   } catch (error) {
     console.log(error);
     snackbar.value = true;
     color.value = "red";
-    text.value = error.response.data.message;
+    text.value = error?.response?.data?.message;
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -140,14 +174,13 @@ const closeDialog = () => {
   resetForm();
 };
 
-watch(subscriptionStart, (newVal, oldVal) => {
+watch(startTime, (newVal, oldVal) => {
   if (newVal !== oldVal) {
     menu1.value = false;
-    console.log(subscriptionStart.value);
   }
 });
-console.log(subscriptionStart.value);
-watch(subscriptionEnd, (newVal, oldVal) => {
+
+watch(endTime, (newVal, oldVal) => {
   if (newVal !== oldVal) menu2.value = false;
 });
 </script>
@@ -164,13 +197,14 @@ watch(subscriptionEnd, (newVal, oldVal) => {
 
       <template v-slot:actions>
         <v-btn :color="color" variant="text" @click="snackbar = false">
-          Close
+          {{ t("close") }}
         </v-btn>
       </template>
     </v-snackbar>
+    <Spinner v-if="loading" />
     <v-card>
       <v-card-title>
-        <span class="text-h5">Update Company</span>
+        <span class="text-h5"> {{ t("update_department") }} </span>
       </v-card-title>
 
       <v-card-text>
@@ -179,14 +213,20 @@ watch(subscriptionEnd, (newVal, oldVal) => {
             <v-col cols="12">
               <v-form @submit="onSubmit" class="px-4 w-100">
                 <v-text-field
-                  v-model="companyName"
-                  v-bind="companyNameProps"
-                  label="Company Name"
+                  v-model="departmentName"
+                  v-bind="departmentNameProps"
+                  :label="t('department_name')"
                 />
                 <v-text-field
-                  v-model="employerNumber"
-                  v-bind="employerNumberProps"
-                  label="Employee Number"
+                  v-model="consumptionFee"
+                  v-bind="consumptionFeeProps"
+                  :label="t('consumption_fee')"
+                  type="number"
+                />
+                <v-text-field
+                  v-model="consumptionAmount"
+                  v-bind="consumptionAmountProps"
+                  :label="t('consumption_amount')"
                   type="number"
                 />
 
@@ -197,14 +237,14 @@ watch(subscriptionEnd, (newVal, oldVal) => {
                 >
                   <template v-slot:activator="{ props }">
                     <v-text-field
-                      v-model="subscriptionStartFormatted"
-                      label="Start Time"
+                      v-model="startTimeFormatted"
+                      :label="t('start_time')"
                       readonly
-                      v-bind="{ ...props, ...subscriptionStartProps }"
+                      v-bind="{ ...props, ...startTimeProps }"
                     ></v-text-field>
                   </template>
 
-                  <v-date-picker v-model="subscriptionStart"></v-date-picker>
+                  <v-date-picker v-model="startTime"></v-date-picker>
                 </v-menu>
 
                 <v-menu
@@ -214,31 +254,31 @@ watch(subscriptionEnd, (newVal, oldVal) => {
                 >
                   <template v-slot:activator="{ props }">
                     <v-text-field
-                      v-model="subscriptionEndFormatted"
-                      label="End Time"
+                      v-model="endTimeFormatted"
+                      :label="t('end_time')"
                       readonly
-                      v-bind="{ ...props, ...subscriptionEndProps }"
+                      v-bind="{ ...props, ...endTimeProps }"
                     ></v-text-field>
                   </template>
 
                   <v-date-picker
-                    :min="subscriptionStart"
-                    v-model="subscriptionEnd"
+                    :min="startTime"
+                    v-model="endTime"
                   ></v-date-picker>
                 </v-menu>
 
                 <v-checkbox
-                  v-model="isFree"
-                  v-bind="isFreeProps"
-                  label="Is Free"
+                  v-model="isDiscountPrice"
+                  v-bind="isDiscountPriceProps"
+                  :label="t('discount_status')"
                 >
                 </v-checkbox>
                 <div class="d-flex justify-center w-100">
-                  <v-btn color="blue-darken-1" @click="closeDialog()">
-                    Cancel
+                  <v-btn color="blue-darken-1" @click="closeDialog">
+                    {{ t("cancel") }}
                   </v-btn>
                   <v-btn class="ml-4" color="blue-darken-1" type="submit">
-                    Save
+                    {{ t("update") }}
                   </v-btn>
                 </div>
               </v-form>
