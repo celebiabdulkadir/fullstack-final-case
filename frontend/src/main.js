@@ -20,7 +20,9 @@ const app = createApp(App);
 registerPlugins(app);
 
 app.mount("#app");
-// axios.defaults.baseURL = import.meta.env.VITE_APP_API_BASE_URL;
+
+axios.defaults.baseURL = "http://localhost:3000";
+
 axios.interceptors.request.use(
   (config) => {
     if (
@@ -43,12 +45,19 @@ let isRefreshing = false;
 let subscribers = [];
 
 function onAccessTokenFetched(accessToken) {
+  console.log("onAccessTokenFetched called with accessToken:", accessToken);
   subscribers.forEach((callback) => callback(accessToken));
   subscribers = [];
 }
 
 function addSubscriber(callback) {
+  console.log("addSubscriber called with callback:", callback);
   subscribers.push(callback);
+}
+
+function retryRequestWithNewToken(accessToken, originalRequest) {
+  originalRequest.headers["Authorization"] = "Bearer " + accessToken;
+  return axios(originalRequest);
 }
 
 axios.interceptors.response.use(
@@ -57,27 +66,40 @@ axios.interceptors.response.use(
   },
   async function (error) {
     const originalRequest = error.config;
-    if (error.response && error.response.status === 401 && !isRefreshing) {
+
+    // Check if the error is due to an expired access token
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
       if (!isRefreshing) {
         isRefreshing = true;
+        subscribers = []; // Clear previous subscribers
 
         try {
           const refreshRequest = await axios.post(
-            "http://localhost:3000/auth/refresh",
+            "/auth/refresh",
             {},
-
             { withCredentials: true }
           );
-          if (refreshRequest.status === 200) {
-            localStorage.setItem(
-              "accessToken",
-              refreshRequest.data.accessToken
-            );
+          const newAccessToken = refreshRequest.data.accessToken;
+
+          if (refreshRequest.status === 201) {
+            localStorage.setItem("accessToken", newAccessToken);
+            axios.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${newAccessToken}`;
+
+            // Notify subscribers with the new token
+            subscribers.forEach((callback) => callback(newAccessToken));
+            subscribers = []; // Clear subscribers after notifying
             isRefreshing = false;
-            onAccessTokenFetched(refreshRequest.data.accessToken);
           }
         } catch (err) {
-          console.error("401 error", err);
+          console.error("Error refreshing token:", err);
           localStorage.removeItem("accessToken");
           router.push("/auth/login");
           isRefreshing = false;
@@ -85,14 +107,12 @@ axios.interceptors.response.use(
         }
       }
 
-      const retryOriginalRequest = new Promise((resolve) => {
-        addSubscriber((accessToken) => {
-          originalRequest.headers["Authorization"] = "Bearer " + accessToken;
-          resolve(axios(originalRequest));
+      // Return a new promise that resolves once the token has been refreshed
+      return new Promise((resolve) => {
+        addSubscriber((newToken) => {
+          resolve(retryRequestWithNewToken(newToken, originalRequest));
         });
       });
-
-      return retryOriginalRequest;
     }
 
     return Promise.reject(error);

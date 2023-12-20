@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RegisterUserDto } from 'src/users/dto/register-user.dto';
 import { SearchService } from 'src/database/elasticsearch/elasticsearch.service';
-import { Logger } from '@nestjs/common';
+import { Logger, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 // This should be a real class/interface representing a user entity
 export type User = any;
@@ -28,7 +28,11 @@ export class UsersService {
 		try {
 			return await this.searchService.indexUser(userWithHashedPassword);
 		} catch (error) {
-			Logger.error(error);
+			if (error.status === 409) {
+				throw new ConflictException();
+			} else {
+				throw new Error(error);
+			}
 		}
 	}
 	async deleteUsers(query: string) {

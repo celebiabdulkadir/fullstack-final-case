@@ -2,7 +2,14 @@
 import { useForm } from "vee-validate";
 import { ref } from "vue";
 import * as yup from "yup";
+import axios from "axios";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
+const snackbar = ref(false);
+const text = ref("My timeout is set to 2000.");
+const color = ref("blue-gray");
+const timeout = ref(2000);
 const schema = yup.object({
   name: yup.string().required().label("Name"),
   surname: yup.string().required().label("Surname"),
@@ -47,13 +54,70 @@ const [passwordConfirm, confirmProps] = defineField(
   vuetifyConfig
 );
 
-const onSubmit = handleSubmit((values) => {
-  console.log("Submitted with", values);
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    const response = await registerUser(values);
+
+    if (response?.status === 201) {
+      snackbar.value = true;
+      text.value = "User registered successfully";
+      console.log("Submitted with", values);
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 1000);
+    } else {
+      snackbar.value = true;
+      color.value = "red";
+      text.value = "Something went wrong";
+    }
+  } catch (error) {
+    console.log(error);
+    snackbar.value = true;
+    color.value = "red";
+    text.value = error.response.data.message;
+  }
 });
+
+const registerUser = async (values) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/auth/register",
+      {
+        name: values.name,
+        surname: values.surname,
+        email: values.email,
+        role: values.role,
+        password: values.password,
+      },
+      { withCredentials: true }
+    );
+    return response;
+  } catch (error) {
+    snackbar.value = true;
+    color.value = "red";
+    text.value = error.response.data.message;
+    console.log(error);
+  }
+};
 </script>
 
 <template>
   <div class="d-flex w-100 justify-center align-center h-screen">
+    <v-snackbar
+      v-model="snackbar"
+      :timeout="timeout"
+      location="top"
+      variant="tonal"
+    >
+      {{ text }}
+
+      <template v-slot:actions>
+        <v-btn :color="color" variant="text" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+
     <v-container>
       <v-row justify="center">
         <v-col cols="12" lg="6">
@@ -91,7 +155,7 @@ const onSubmit = handleSubmit((values) => {
             />
 
             <div class="mb-4">
-              <v-btn color="primary" type="submit"> Login </v-btn>
+              <v-btn color="primary" type="submit"> Register </v-btn>
               <v-btn color="outline" class="ml-4" @click="resetForm()">
                 Reset
               </v-btn>

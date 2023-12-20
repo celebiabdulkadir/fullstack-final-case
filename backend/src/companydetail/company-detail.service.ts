@@ -94,4 +94,20 @@ export class CompanyDetailService {
 			return error;
 		}
 	}
+	async getCompanyDetailByCompanyId(companyId: string) {
+		try {
+			const response = await this.companyDetailRepository
+				.createQueryBuilder('companyDetail')
+				.innerJoinAndSelect(
+					'companyDetail.company',
+					'company',
+					'companyDetail.companyId = :companyId',
+					{ companyId }
+				)
+				.getMany();
+			return response;
+		} catch (error) {
+			throw new Error(error);
+		}
+	}
 }

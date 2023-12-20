@@ -30,8 +30,6 @@ export class SearchService {
 			throw new ConflictException(
 				`User with email ${user.email} already exists`
 			);
-		} else if (result.hits.hits.length === 0) {
-			throw new NotFoundException(`User with email ${user.email} not found`);
 		} else {
 			return this.elasticsearchService.index({
 				index: 'users',

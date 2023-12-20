@@ -1,9 +1,17 @@
 <script setup>
 import { useLocale } from "vuetify";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 import axios from "axios";
+
+const user = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user"))
+  : {
+      name: "A",
+      surname: "A",
+      email: "deneme@deneme.com",
+    };
 
 const { current, t } = useLocale();
 const languageItems = ref([
@@ -22,26 +30,26 @@ const selectedLanguage = ref(
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGlkPSJmbGFnLWljb25zLXRyIiB2aWV3Qm94PSIwIDAgNjQwIDQ4MCI+CiAgPGcgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgIDxwYXRoIGZpbGw9IiNlMzBhMTciIGQ9Ik0wIDBoNjQwdjQ4MEgweiIvPgogICAgPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTQwNyAyNDcuNWMwIDY2LjItNTQuNiAxMTkuOS0xMjIgMTE5LjlzLTEyMi01My43LTEyMi0xMjAgNTQuNi0xMTkuOCAxMjItMTE5LjggMTIyIDUzLjcgMTIyIDExOS45eiIvPgogICAgPHBhdGggZmlsbD0iI2UzMGExNyIgZD0iTTQxMyAyNDcuNWMwIDUzLTQzLjYgOTUuOS05Ny41IDk1LjlzLTk3LjYtNDMtOTcuNi05NiA0My43LTk1LjggOTcuNi05NS44IDk3LjYgNDIuOSA5Ny42IDk1Ljl6Ii8+CiAgICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDMwLjcgMTkxLjUtMSA0NC4zLTQxLjMgMTEuMiA0MC44IDE0LjUtMSA0MC43IDI2LjUtMzEuOCA0MC4yIDE0LTIzLjItMzQuMSAyOC4zLTMzLjktNDMuNSAxMi0yNS44LTM3eiIvPgogIDwvZz4KPC9zdmc+Cg=="
 );
 
-const user = ref({
-  fullName: "John Doe",
-  initials: "JD",
-  email: "",
+const userInitials = computed(() => {
+  return (
+    user?.name?.charAt(0).toUpperCase() + user?.surname?.charAt(0).toUpperCase()
+  );
 });
 
+console.log(user.value);
 const changeLanguage = (item) => {
   current.value = item.langCode;
   selectedLanguage.value = item.icon;
 };
 
 const logout = async () => {
-  localStorage.removeItem("accessToken");
-
-  const logoutRequest = await axios.get("http://localhost:3000/auth/logout", {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-    },
+  const logoutRequest = await axios.get("/auth/logout", {
+    withCredentials: true,
   });
-  if (logoutRequest.status === 200) return router.push("/login");
+  if (logoutRequest.status === 200) {
+    router.push("/auth/login");
+    localStorage.removeItem("accessToken");
+  }
 };
 //
 </script>
@@ -49,7 +57,7 @@ const logout = async () => {
 <template>
   <v-app-bar color="teal-lighten-4" flat>
     <v-app-bar-title>
-      <div class="d-lg-flex justify-space-between align-center">
+      <div class="d-flex justify-space-between align-center">
         <div>
           <v-img
             :width="80"
@@ -111,7 +119,7 @@ const logout = async () => {
                     <template v-slot:activator="{ props }">
                       <v-btn icon v-bind="props">
                         <v-avatar color="brown" size="small">
-                          <span class="">{{ user.initials }}</span>
+                          <span class="">{{ userInitials }}</span>
                         </v-avatar>
                       </v-btn>
                     </template>
@@ -119,13 +127,12 @@ const logout = async () => {
                       <v-card-text>
                         <div class="mx-auto text-center">
                           <v-avatar color="brown">
-                            <span class="text-h5">{{ user.initials }}</span>
+                            <span class="text-h5">{{ userInitials }}</span>
                           </v-avatar>
-                          <h3>{{ user.fullName }}</h3>
+                          <h3>{{ user?.name }}</h3>
                           <p class="text-caption mt-1">
-                            {{ user.email }}
+                            {{ user?.email }}
                           </p>
-                          <v-divider class="my-3"></v-divider>
 
                           <v-divider class="my-3"></v-divider>
                           <v-btn rounded variant="text" @click="logout">
