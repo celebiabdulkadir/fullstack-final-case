@@ -60,6 +60,11 @@ export class CompanyDetailController {
 	getCompanyDetailById(@Param() params: IdParam) {
 		return this.companyDetailService.getCompanyDetailById(params.id);
 	}
+	@UseGuards(JwtAuthGuard)
+	@Get('/getCompanyDetailByCompanyId/:id')
+	getCompanyDetailByCompanyId(@Param() params: IdParam) {
+		return this.companyDetailService.getCompanyDetailByCompanyId(params.id);
+	}
 
 	@UseGuards(JwtAuthGuard)
 	@Delete(':id')

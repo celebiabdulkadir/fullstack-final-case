@@ -23,7 +23,7 @@ const routes = [
         component: () => import("@/views/Dashboard.vue"),
       },
       {
-        path: "company-detail",
+        path: "company-detail/:id",
         name: "CompanyDetail",
         // route level code-splitting
         // this generates a separate chunk (Home-[hash].js) for this route
@@ -52,6 +52,25 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  // List of routes that don't require authentication
+  const publicPages = ["/auth/login", "/auth/register"];
+
+  // Check if the route requires authentication
+  const authRequired = !publicPages.includes(to.path);
+
+  // Get the access token from local storage
+  const loggedIn = localStorage.getItem("accessToken");
+
+  // If the route requires authentication and there's no access token
+  // in local storage, redirect to the login page
+  if (authRequired && !loggedIn) {
+    next("/auth/login");
+  } else {
+    next();
+  }
 });
 
 export default router;

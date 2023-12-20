@@ -3,9 +3,15 @@ import { useForm } from "vee-validate";
 import { ref } from "vue";
 import * as yup from "yup";
 import axios from "axios";
+import { useAppStore } from "@/store/app";
 
 import { useRouter } from "vue-router";
+const store = useAppStore();
 const router = useRouter();
+const snackbar = ref(false);
+const text = ref("My timeout is set to 2000.");
+const color = ref("blue-gray");
+const timeout = ref(2000);
 const schema = yup.object({
   email: yup.string().email().required().label("E-mail"),
   password: yup.string().min(6).required().label("Password"),
@@ -29,10 +35,17 @@ const [password, passwordProps] = defineField("password", vuetifyConfig);
 const onSubmit = handleSubmit(async (values) => {
   try {
     const user = await login(values);
+
     localStorage.setItem("accessToken", user.accessToken);
-    // cookie.setItem("refreshToken", response.cookie.refreshToken);
-    router.push("/");
+    localStorage.setItem("user", JSON.stringify(user));
+    snackbar.value = true;
+    color.value = "green";
+    text.value = "User Logged in successfully";
+    // router.push("/");
     console.log("Submitted with", user);
+    setTimeout(() => {
+      router.push("/");
+    }, 1000);
   } catch (error) {
     console.log(error);
   }
@@ -40,17 +53,48 @@ const onSubmit = handleSubmit(async (values) => {
 
 const login = async (values) => {
   try {
-    const response = await axios.post("http://localhost:3000/auth/login", {
-      email: values.email,
-      password: values.password,
-    });
+    const response = await axios.post(
+      "/auth/login",
+      {
+        email: values.email,
+        password: values.password,
+      },
+      { withCredentials: true }
+    );
+
+    if (response.status !== 201) {
+      snackbar.value = true;
+      color.value = "red";
+      text.value = "Something went wrong";
+      return;
+    }
+
     return response.data;
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    snackbar.value = true;
+    color.value = "red";
+    text.value = error.response.data.message;
+  }
 };
 </script>
 
 <template>
   <div class="d-flex w-100 justify-center align-center h-screen">
+    <v-snackbar
+      variant="tonal"
+      v-model="snackbar"
+      :timeout="timeout"
+      location="top"
+    >
+      {{ text }}
+
+      <template v-slot:actions>
+        <v-btn :color="color" variant="text" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <v-container>
       <v-row justify="center">
         <v-col cols="12" lg="6">

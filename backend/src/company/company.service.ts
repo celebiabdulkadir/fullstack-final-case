@@ -23,17 +23,23 @@ export class CompanyService {
 
 	async getAllCompany(): Promise<Company[]> {
 		try {
-			return this.companyRepository.find();
+			return await this.companyRepository.find();
 		} catch (error) {
 			throw new Error(error);
 			Logger.error(error);
 		}
 	}
-	async deleteCompany(id: string): Promise<void> {
+	async deleteCompany(id: string) {
 		try {
-			await this.companyRepository.delete(id);
+			const found = await this.getCompanyById(id);
+			if (!found)
+				throw new NotFoundException(`Company with id ${id} not found`);
+			const deletedCompany = await this.companyRepository.delete(id);
+			return deletedCompany;
 		} catch (error) {
 			if (error.code === '22P02') {
+				throw new NotFoundException(error);
+			} else if (error.status === 404) {
 				throw new NotFoundException(error);
 			} else {
 				throw new Error(error);

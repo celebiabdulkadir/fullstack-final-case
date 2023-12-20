@@ -5,13 +5,18 @@ import {
 	HttpException,
 	HttpStatus,
 	NotFoundException,
+	ConflictException,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-@Catch(QueryFailedError, NotFoundException)
+@Catch(QueryFailedError, NotFoundException, TypeError, ConflictException)
 export class TypeOrmExceptionFilter implements ExceptionFilter {
 	catch(
-		exception: QueryFailedError | NotFoundException | TypeError,
+		exception:
+			| QueryFailedError
+			| NotFoundException
+			| TypeError
+			| ConflictException,
 		host: ArgumentsHost
 	) {
 		const ctx = host.switchToHttp();
@@ -43,6 +48,9 @@ export class TypeOrmExceptionFilter implements ExceptionFilter {
 			} else {
 				message = exception.message;
 			}
+		} else if (exception instanceof ConflictException) {
+			status = 400;
+			message = exception.message;
 		} else {
 			status = 500;
 			message = message;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -47,7 +47,7 @@ export class AuthService {
 
 		return {
 			...user,
-			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15m' }),
 		};
 	}
 
@@ -70,7 +70,7 @@ export class AuthService {
 		};
 
 		return {
-			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15s' }),
+			accessToken: this.jwtAccessService.sign(payload, { expiresIn: '15m' }),
 		};
 	}
 }
