@@ -19,6 +19,7 @@ import router from "./router";
 import App from "./App.vue";
 import trlocale from "@/messages/messages-tr.json";
 import enlocale from "@/messages/messages-en.json";
+import Spinner from "@/components/common/Spinner.vue";
 
 // Composables
 
@@ -32,7 +33,6 @@ const messages = {
   tr: {
     $vuetify: {
       ...tr,
-      trlocale,
     },
     ...trlocale,
   },
@@ -56,6 +56,7 @@ app.use(i18n);
 app.use(vuetify);
 app.use(router);
 app.use(pinia);
+app.component("Spinner", Spinner);
 // registerPlugins(app);
 
 app.mount("#app");
@@ -140,6 +141,7 @@ axios.interceptors.response.use(
         } catch (err) {
           console.error("Error refreshing token:", err);
           localStorage.removeItem("accessToken");
+          localStorage.removeItem("user");
           router.push("/auth/login");
           isRefreshing = false;
           return Promise.reject(err);

@@ -1,33 +1,35 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 import { onMounted } from "vue";
 import CreateCompanyDetail from "@/components/companyDetail/CreateCompanyDetail.vue";
 import EditCompanyDetail from "@/components/companyDetail/EditCompanyDetail.vue";
 import { formatDate, parseDate } from "@/utils/dateFormat";
 import { useRoute, useRouter } from "vue-router";
-
+import { useLocale } from "vuetify";
+const { current, t } = useLocale();
 const router = useRouter();
 const dialogCreate = ref(false);
 const dialogEdit = ref(false);
 const dialogDelete = ref(false);
-const headers = ref([
+const loading = ref(false);
+const headers = computed(() => [
   {
-    title: "Department Name",
+    title: t("department_name"),
     align: "start",
     sortable: false,
     key: "departmentName",
   },
-  { title: "Usage Period ", key: "usagePeriod", align: "center" },
+  { title: t("usage_period"), key: "usagePeriod", align: "center" },
 
-  { title: "Consumption Fee (TRY)", align: "center", key: "consumptionFee" },
+  { title: t("consumption_fee"), align: "center", key: "consumptionFee" },
   {
-    title: "Consumption Amount(kWh)",
+    title: t("consumption_amount"),
     align: "center",
     key: "consumptionAmount",
   },
-  { title: "Discount Status", key: "isDiscountPrice" },
-  { title: "Actions", align: "center", key: "actions", sortable: false },
+  { title: t("discount_status"), key: "isDiscountPrice" },
+  { title: t("actions"), align: "center", key: "actions", sortable: false },
 ]);
 const snackbar = ref(false);
 const text = ref("My timeout is set to 2000.");
@@ -39,6 +41,7 @@ const selectedCompanyDetailForEdit = ref(null);
 const route = useRoute(); // Get the current route
 const companyId = route.params.id;
 const getAllCompanyDetails = async () => {
+  loading.value = true;
   // Get the companyId parameter
   try {
     const response = await axios.get(
@@ -48,6 +51,8 @@ const getAllCompanyDetails = async () => {
     companyDetails.value = response.data;
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -62,6 +67,8 @@ const deleteItem = async (item) => {
 };
 
 const deleteItemConfirm = async () => {
+  loading.value = true;
+
   // Use the stored company id to delete the company
   try {
     const response = await axios.delete(
@@ -76,6 +83,8 @@ const deleteItemConfirm = async () => {
     }
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -97,7 +106,7 @@ const openCreateDialog = () => {
   dialogCreate.value = true;
 };
 const goBack = () => {
-  router.go(-1);
+  router.push("/dashboard");
 };
 </script>
 
@@ -112,10 +121,11 @@ const goBack = () => {
 
     <template v-slot:actions>
       <v-btn :color="color" variant="text" @click="snackbar = false">
-        Close
+        {{ t("close") }}
       </v-btn>
     </template>
   </v-snackbar>
+  <Spinner v-if="loading"></Spinner>
 
   <div class="d-flex flex-column">
     <v-tooltip text="Back">
@@ -134,14 +144,12 @@ const goBack = () => {
     <v-data-table
       :headers="headers"
       :items="companyDetails"
-      :sort-by="[{ key: 'calories', order: 'asc' }]"
+      :sort-by="[{ key: 'consumptionAmount', order: 'asc' }]"
     >
       <template v-slot:top>
         <v-toolbar flat>
-          <v-toolbar-title>COMPANY DETAIL</v-toolbar-title>
+          <v-toolbar-title>{{ t("company_detail") }}</v-toolbar-title>
 
-          <v-divider class="mx-4" inset vertical></v-divider>
-          <v-spacer></v-spacer>
           <v-btn
             prepend-icon="mdi-plus"
             color="primary"
@@ -149,7 +157,7 @@ const goBack = () => {
             class="mb-2"
             @click="openCreateDialog()"
           >
-            Create New Department
+            {{ t("create_department") }}
           </v-btn>
 
           <CreateCompanyDetail
@@ -167,19 +175,22 @@ const goBack = () => {
           ></EditCompanyDetail>
           <v-dialog v-model="dialogDelete" max-width="500px">
             <v-card>
-              <v-card-title class="text-h5"
-                >Are you sure you want to delete this item?</v-card-title
-              >
+              <v-card-title class="text-h5">{{
+                t("delete_confirmation")
+              }}</v-card-title>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue-darken-1" variant="text" @click="closeDelete"
-                  >Cancel</v-btn
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="closeDelete"
+                  >{{ t("cancel") }}</v-btn
                 >
                 <v-btn
                   color="blue-darken-1"
                   variant="text"
                   @click="deleteItemConfirm"
-                  >OK</v-btn
+                  >{{ t("ok") }}</v-btn
                 >
                 <v-spacer></v-spacer>
               </v-card-actions>
@@ -211,7 +222,9 @@ const goBack = () => {
           text-color="white"
           label
           small
-          >{{ item.isDiscountPrice ? "Discount" : "Not Discount" }}</v-chip
+          >{{
+            item.isDiscountPrice ? t("discount") : t("not_discount")
+          }}</v-chip
         >
       </template>
 

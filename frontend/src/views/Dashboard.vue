@@ -6,23 +6,26 @@ import CreateCompany from "@/components/dashboard/CreateCompany.vue";
 import EditCompany from "@/components/dashboard/EditCompany.vue";
 import { formatDate, parseDate } from "@/utils/dateFormat";
 import { useRouter } from "vue-router";
+import { useLocale } from "vuetify";
+const { current, t } = useLocale();
 const router = useRouter();
 const dialog = ref(false);
 const dialogCreate = ref(false);
 const dialogEdit = ref(false);
 const dialogDelete = ref(false);
-const headers = ref([
+const loading = ref(false);
+const headers = computed(() => [
   {
-    title: "Company Name",
+    title: t("company_name"),
     align: "start",
     sortable: false,
     key: "companyName",
   },
-  { title: "Start Time", key: "subscriptionStart" },
-  { title: "End Time", key: "subscriptionEnd" },
-  { title: "Number of Employees", align: "center", key: "employerNumber" },
-  { title: "Discount Status", key: "isFree" },
-  { title: "Actions", align: "center", key: "actions", sortable: false },
+  { title: t("subscription_start"), key: "subscriptionStart" },
+  { title: t("subscription_end"), key: "subscriptionEnd" },
+  { title: t("employee_number"), align: "center", key: "employerNumber" },
+  { title: t("subscription_status"), key: "isFree" },
+  { title: t("actions"), align: "center", key: "actions", sortable: false },
 ]);
 const snackbar = ref(false);
 const text = ref("My timeout is set to 2000.");
@@ -33,6 +36,7 @@ const selectedCompanyForDelete = ref(null);
 const selectedCompanyForEdit = ref(null);
 
 const getAllCompanies = async () => {
+  loading.value = true;
   try {
     const response = await axios.get("/company/all", {
       headers: {
@@ -43,6 +47,8 @@ const getAllCompanies = async () => {
     companies.value = response.data;
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -57,6 +63,7 @@ const deleteItem = async (item) => {
 };
 
 const deleteItemConfirm = async () => {
+  loading.value = true;
   // Use the stored company id to delete the company
   try {
     const response = await axios.delete(
@@ -71,6 +78,8 @@ const deleteItemConfirm = async () => {
     }
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -104,20 +113,20 @@ const openCreateDialog = () => {
 
     <template v-slot:actions>
       <v-btn :color="color" variant="text" @click="snackbar = false">
-        Close
+        {{ t("close") }}
       </v-btn>
     </template>
   </v-snackbar>
+  <Spinner v-if="loading"></Spinner>
   <v-data-table
     :headers="headers"
     :items="companies"
-    :sort-by="[{ key: 'calories', order: 'asc' }]"
+    :sort-by="[{ key: 'employeeNumber', order: 'asc' }]"
   >
     <template v-slot:top>
       <v-toolbar flat>
-        <v-toolbar-title>COMPANIES</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
+        <v-toolbar-title>{{ t("companies") }}</v-toolbar-title>
+
         <v-btn
           prepend-icon="mdi-plus"
           color="primary"
@@ -125,7 +134,7 @@ const openCreateDialog = () => {
           class="mb-2"
           @click="openCreateDialog()"
         >
-          Create New Company
+          {{ t("create_company") }}
         </v-btn>
 
         <CreateCompany
@@ -141,19 +150,22 @@ const openCreateDialog = () => {
         ></EditCompany>
         <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
-            <v-card-title class="text-h5"
-              >Are you sure you want to delete this item?</v-card-title
-            >
+            <v-card-title class="text-h5 text-center">{{
+              t("delete_confirmation")
+            }}</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue-darken-1" variant="text" @click="closeDelete"
-                >Cancel</v-btn
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="closeDelete"
+                >{{ t("cancel") }}</v-btn
               >
               <v-btn
                 color="blue-darken-1"
                 variant="text"
                 @click="deleteItemConfirm"
-                >OK</v-btn
+                >{{ t("ok") }}</v-btn
               >
               <v-spacer></v-spacer>
             </v-card-actions>
@@ -178,7 +190,7 @@ const openCreateDialog = () => {
         @click="deleteItem(item)"
       ></v-btn>
 
-      <v-tooltip text="Detail">
+      <v-tooltip :text="t('detail')">
         <template v-slot:activator="{ props }">
           <v-btn
             class="ma-2"
@@ -199,7 +211,7 @@ const openCreateDialog = () => {
         text-color="white"
         label
         small
-        >{{ item.isFree ? "Free" : "Not Free" }}</v-chip
+        >{{ item.isFree ? t("free") : t("not_free") }}</v-chip
       >
     </template>
 

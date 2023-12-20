@@ -18,8 +18,8 @@ export class RegisterUserDto {
 	@IsNotEmpty()
 	@IsString()
 	@Length(8)
-	@Matches(/^[a-zA-Z]*$/, {
-		message: 'Name should not contain numeric characters',
+	@Matches(/^[a-zA-Z\s]*$/, {
+		message: 'Name should only contain alphabetic characters and spaces',
 	})
 	readonly name: string;
 

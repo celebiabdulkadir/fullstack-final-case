@@ -15,11 +15,13 @@ import { useForm } from "vee-validate";
 import * as yup from "yup";
 import axios from "axios";
 import { formatDate, parseDate, convertToStartOfDay } from "@/utils/dateFormat";
+import { useLocale } from "vuetify";
+const { current, t } = useLocale();
 const snackbar = ref(false);
 const text = ref("My timeout is set to 2000.");
 const color = ref("blue-gray");
 const timeout = ref(2000);
-
+const loading = ref(false);
 const menu1 = ref(false);
 const menu2 = ref(false);
 const vuetifyConfig = (state) => ({
@@ -27,14 +29,34 @@ const vuetifyConfig = (state) => ({
     "error-messages": state.errors,
   },
 });
-
 const schema = yup.object({
-  departmentName: yup.string().required().label("Department Name"),
-  consumptionAmount: yup.number().required().label("Consumption Amount"),
-  consumptionFee: yup.number().required().label("Consumption Fee"),
-  startTime: yup.string().required().label("Start Date"),
-  endTime: yup.string().required().label("End Date"),
-  isDiscountPrice: yup.boolean().required().label("Discount Status"),
+  departmentName: yup
+    .string()
+    .required(t("department_name_required"))
+    .label(t("department_name")),
+  consumptionAmount: yup
+    .number()
+    .transform((value, originalValue) => {
+      return originalValue === "" || isNaN(originalValue) ? undefined : value;
+    })
+    .required(t("consumption_amount_required"))
+    .label(t("consumption_amount")),
+  consumptionFee: yup
+    .number()
+    .transform((value, originalValue) => {
+      return originalValue === "" || isNaN(originalValue) ? undefined : value;
+    })
+    .required(t("consumption_fee_required"))
+    .label(t("consumption_fee")),
+  startTime: yup
+    .string()
+    .required(t("start_time_required"))
+    .label(t("start_time")),
+  endTime: yup.string().required(t("end_time_required")).label(t("end_time")),
+  isDiscountPrice: yup
+    .boolean()
+    .required(t("discount_status_required"))
+    .label(t("discount_status")),
 });
 
 const { defineField, handleSubmit, resetForm, setValues } = useForm({
@@ -67,6 +89,7 @@ const props = defineProps({
 const emit = defineEmits(["closeEditDialog", "getAllCompanyDetails"]);
 
 const getCompanyDetailById = async () => {
+  loading.value = true;
   try {
     const response = await axios.get(`/companydetail/${props.companyDetail}`);
 
@@ -80,6 +103,8 @@ const getCompanyDetailById = async () => {
     });
   } catch (error) {
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -118,26 +143,29 @@ const endTimeFormatted = computed({
 });
 
 const onSubmit = handleSubmit(async (values) => {
+  loading.value = true;
   try {
     const response = await editCompany(values);
     console.log(response);
 
     if (response?.status === 200) {
       snackbar.value = true;
-      text.value = "User registered successfully";
+      text.value = t("department_updated");
       closeDialog();
       emit("getAllCompanyDetails");
     } else {
       snackbar.value = true;
       color.value = "red";
-      text.value = "Something went wrong";
+      text.value = t("something_went_wrong");
       return;
     }
   } catch (error) {
     console.log(error);
     snackbar.value = true;
     color.value = "red";
-    text.value = error.response.data.message;
+    text.value = error?.response?.data?.message;
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -149,10 +177,9 @@ const closeDialog = () => {
 watch(startTime, (newVal, oldVal) => {
   if (newVal !== oldVal) {
     menu1.value = false;
-    console.log(startTime.value);
   }
 });
-console.log(startTime.value);
+
 watch(endTime, (newVal, oldVal) => {
   if (newVal !== oldVal) menu2.value = false;
 });
@@ -170,13 +197,14 @@ watch(endTime, (newVal, oldVal) => {
 
       <template v-slot:actions>
         <v-btn :color="color" variant="text" @click="snackbar = false">
-          Close
+          {{ t("close") }}
         </v-btn>
       </template>
     </v-snackbar>
+    <Spinner v-if="loading" />
     <v-card>
       <v-card-title>
-        <span class="text-h5">Update Company</span>
+        <span class="text-h5"> {{ t("update_department") }} </span>
       </v-card-title>
 
       <v-card-text>
@@ -187,18 +215,18 @@ watch(endTime, (newVal, oldVal) => {
                 <v-text-field
                   v-model="departmentName"
                   v-bind="departmentNameProps"
-                  label="Department Name"
+                  :label="t('department_name')"
                 />
                 <v-text-field
                   v-model="consumptionFee"
                   v-bind="consumptionFeeProps"
-                  label="Employee Number"
+                  :label="t('consumption_fee')"
                   type="number"
                 />
                 <v-text-field
                   v-model="consumptionAmount"
                   v-bind="consumptionAmountProps"
-                  label="Consumption Amount"
+                  :label="t('consumption_amount')"
                   type="number"
                 />
 
@@ -210,7 +238,7 @@ watch(endTime, (newVal, oldVal) => {
                   <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="startTimeFormatted"
-                      label="Start Time"
+                      :label="t('start_time')"
                       readonly
                       v-bind="{ ...props, ...startTimeProps }"
                     ></v-text-field>
@@ -227,7 +255,7 @@ watch(endTime, (newVal, oldVal) => {
                   <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="endTimeFormatted"
-                      label="End Time"
+                      :label="t('end_time')"
                       readonly
                       v-bind="{ ...props, ...endTimeProps }"
                     ></v-text-field>
@@ -242,15 +270,15 @@ watch(endTime, (newVal, oldVal) => {
                 <v-checkbox
                   v-model="isDiscountPrice"
                   v-bind="isDiscountPriceProps"
-                  label="Discount"
+                  :label="t('discount_status')"
                 >
                 </v-checkbox>
                 <div class="d-flex justify-center w-100">
                   <v-btn color="blue-darken-1" @click="closeDialog">
-                    Cancel
+                    {{ t("cancel") }}
                   </v-btn>
                   <v-btn class="ml-4" color="blue-darken-1" type="submit">
-                    Update
+                    {{ t("update") }}
                   </v-btn>
                 </div>
               </v-form>
