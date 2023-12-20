@@ -14,7 +14,10 @@ export class CreateCompanyDetailDto {
 	readonly companyId: string;
 	@IsNotEmpty()
 	@IsDateString()
-	readonly usageTime: Date;
+	readonly startTime: Date;
+	@IsNotEmpty()
+	@IsDateString()
+	readonly endTime: Date;
 	@IsNotEmpty()
 	@IsNumber()
 	readonly consumptionFee: number;

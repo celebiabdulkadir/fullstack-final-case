@@ -19,8 +19,9 @@ export class CompanyDetail {
 
 	@Column({ nullable: false })
 	departmentName: string;
-	@Column({ nullable: false })
-	usageTime: Date;
+
+	@Column('jsonb')
+	usagePeriod: { startTime: Date; endTime: Date };
 	@Column({ nullable: false })
 	consumptionFee: number;
 	@Column({ nullable: false })
@@ -34,4 +35,19 @@ export class CompanyDetail {
 	company: Company;
 	@Column({ nullable: false }) // This line is added
 	companyId: string;
+
+	// Temporary properties, not stored in the database
+	startTime: Date;
+	endTime: Date;
+
+	@BeforeInsert()
+	@BeforeUpdate()
+	setUsagePeriod() {
+		if (this.startTime && this.endTime) {
+			this.usagePeriod = {
+				startTime: this.startTime,
+				endTime: this.endTime,
+			};
+		}
+	}
 }

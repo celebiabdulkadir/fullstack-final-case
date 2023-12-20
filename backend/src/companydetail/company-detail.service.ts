@@ -38,8 +38,10 @@ export class CompanyDetailService {
 			const companyDetail =
 				this.companyDetailRepository.create(createCompanyDto);
 			companyDetail.company = company;
+			companyDetail.startTime = createCompanyDto.startTime;
+			companyDetail.endTime = createCompanyDto.endTime;
 
-			return this.companyDetailRepository.save(companyDetail);
+			return await this.companyDetailRepository.save(companyDetail);
 		} catch (error) {
 			throw new Error(error);
 		}
@@ -47,13 +49,17 @@ export class CompanyDetailService {
 
 	async getAllCompanyDetail(): Promise<CompanyDetail[]> {
 		try {
-			return this.companyDetailRepository.find();
+			return await this.companyDetailRepository.find();
 		} catch (error) {
 			throw new Error(error);
 		}
 	}
 	async deleteCompanyDetail(id: string): Promise<void> {
 		try {
+			const found = await this.getCompanyDetailById(id);
+			if (!found) {
+				throw new NotFoundException('Company Detail not found');
+			}
 			await this.companyDetailRepository.delete(id);
 		} catch (error) {
 			if (error.code === '22P02') {
@@ -86,8 +92,22 @@ export class CompanyDetailService {
 		const toUpdate = await this.getCompanyDetailById(
 			updateCompanyDetailDto.companyDetailId
 		);
+
+		if (!toUpdate) {
+			throw new NotFoundException('Company Detail not found');
+		}
 		try {
+			if (updateCompanyDetailDto.startTime && updateCompanyDetailDto.endTime) {
+				toUpdate.startTime = updateCompanyDetailDto.startTime;
+				toUpdate.endTime = updateCompanyDetailDto.endTime;
+
+				toUpdate.usagePeriod = {
+					startTime: updateCompanyDetailDto.startTime,
+					endTime: updateCompanyDetailDto.endTime,
+				};
+			}
 			const updated = Object.assign(toUpdate, updateCompanyDetailDto);
+
 			return this.companyDetailRepository.save(updated);
 		} catch (error) {
 			Logger.error(error);
