@@ -45,7 +45,7 @@
   "subscription_status": "Subscription Status",
   "actions": "Actions",
   "companies": "COMPANIES",
-  "create_company": "CREATE NEW COMPANY",
+  "create_company": "ADD NEW COMPANY",
   "delete_confirmation": "Are you sure you want to delete ?",
   "detail": "Detail",
   "free": "Free ",
@@ -82,5 +82,6 @@
   "consumption_amount_required": "Consumption amount is required",
   "department_created": "Department created",
   "department_updated": "Department updated",
-  "update_department": "UPDATE DEPARTMENT"
+  "update_department": "UPDATE DEPARTMENT",
+  "password_confirm": "Password Confirm"
 }

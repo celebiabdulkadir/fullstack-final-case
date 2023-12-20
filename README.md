@@ -6,7 +6,7 @@
 
 ## Description
 
-This is a full-stack application built with [Nest.js](https://nestjs.com/) and [Vue.js](https://vuejs.org/).
+This is a full-stack application built with [Nest.js](https://nestjs.com/) and [Vue.js](https://vuejs.org/).This app provides multiple features for company management. Users can register, login and manage company and department energy consumption on this platform.
 
 ## Authentication
 
@@ -79,6 +79,15 @@ The application is designed to be responsive and provides an optimal viewing and
 - Database: (Postgresql,elasticsearh)
 - ORM: (Typorm)
 - Other technologies: (Vuefity)
+
+## Environment Variables
+
+This application uses environment variables for configuration. To set up your environment variables:
+
+1. Copy the `.env.example` file and rename it to `.env`.
+2. Open the `.env` file and replace the example values with your actual values.
+
+The `.env` file should look something like this:
 
 ## Installation
 

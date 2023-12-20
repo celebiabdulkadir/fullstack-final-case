@@ -82,5 +82,6 @@
   "consumption_amount_required": "Tüketim miktarı boş bırakılamaz",
   "department_created": "Departman oluşturuldu",
   "department_updated": "Departman güncellendi",
-  "update_department": "DEPARTMAN BİLGİLERİNİ GÜNCELLE"
+  "update_department": "DEPARTMAN BİLGİLERİNİ GÜNCELLE",
+  "password_confirm": "Şifre Tekrar"
 }
