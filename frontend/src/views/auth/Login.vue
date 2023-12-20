@@ -4,8 +4,9 @@ import { ref } from "vue";
 import * as yup from "yup";
 import axios from "axios";
 import { useAppStore } from "@/store/app";
-
+import { useLocale } from "vuetify";
 import { useRouter } from "vue-router";
+const { current, t } = useLocale();
 const store = useAppStore();
 const router = useRouter();
 const snackbar = ref(false);
@@ -29,7 +30,7 @@ const vuetifyConfig = (state) => ({
   },
 });
 
-const [email, emailProps] = defineField("email", vuetifyConfig);
+const [email, emailProps] = defineField(t("email"), vuetifyConfig);
 const [password, passwordProps] = defineField("password", vuetifyConfig);
 
 const onSubmit = handleSubmit(async (values) => {
@@ -118,7 +119,7 @@ const login = async (values) => {
             />
 
             <div class="mb-4">
-              <v-btn color="primary" type="submit"> Login </v-btn>
+              <v-btn color="primary" type="submit"> {{ t("login") }} </v-btn>
               <v-btn color="outline" class="ml-4" @click="resetForm()">
                 Reset
               </v-btn>

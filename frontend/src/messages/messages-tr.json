@@ -1,0 +1,14 @@
+{
+  "login": "GİRİŞ",
+  "register": "Kayıt Ol",
+  "save": "Kaydet",
+  "cancel": "İptal",
+  "delete": "Sil",
+  "edit": "Düzenle",
+  "add": "Ekle",
+  "search": "Ara",
+  "name": "İsim",
+  "email": "E-posta",
+  "password": "Şifre",
+  "confirm_password": "Şifre Tekrar"
+}

@@ -7,17 +7,56 @@
 // Plugins
 import { registerPlugins } from "@/plugins";
 import axios from "axios";
-
+import { createApp } from "vue";
+import { createVuetify } from "vuetify";
+import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
+import { createI18n, useI18n } from "vue-i18n";
+import { en, tr } from "vuetify/locale";
+import "vuetify/dist/vuetify.min.css";
+import pinia from "./store";
+import router from "./router";
 // Components
 import App from "./App.vue";
-import router from "./router";
+import trlocale from "@/messages/messages-tr.json";
+import enlocale from "@/messages/messages-en.json";
 
 // Composables
-import { createApp } from "vue";
+
+const messages = {
+  en: {
+    $vuetify: {
+      ...en,
+    },
+    ...enlocale,
+  },
+  tr: {
+    $vuetify: {
+      ...tr,
+      trlocale,
+    },
+    ...trlocale,
+  },
+};
+
+export const i18n = createI18n({
+  legacy: false, // Vuetify does not support the legacy mode of vue-i18n
+  locale: "tr",
+  fallbackLocale: "en",
+  messages,
+});
+
+const vuetify = createVuetify({
+  locale: {
+    adapter: createVueI18nAdapter({ i18n, useI18n }),
+  },
+});
 
 const app = createApp(App);
-
-registerPlugins(app);
+app.use(i18n);
+app.use(vuetify);
+app.use(router);
+app.use(pinia);
+// registerPlugins(app);
 
 app.mount("#app");
 

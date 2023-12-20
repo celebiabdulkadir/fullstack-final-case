@@ -1,13 +1,13 @@
 <script setup>
-import { ref, watch, computed, nextTick } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 import { onMounted } from "vue";
 import CreateCompanyDetail from "@/components/companyDetail/CreateCompanyDetail.vue";
 import EditCompanyDetail from "@/components/companyDetail/EditCompanyDetail.vue";
 import { formatDate, parseDate } from "@/utils/dateFormat";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
-const dialog = ref(false);
+const router = useRouter();
 const dialogCreate = ref(false);
 const dialogEdit = ref(false);
 const dialogDelete = ref(false);
@@ -18,7 +18,7 @@ const headers = ref([
     sortable: false,
     key: "departmentName",
   },
-  { title: "Usage Time (H)", key: "usageTime" },
+  { title: "Usage Period ", key: "usagePeriod", align: "center" },
 
   { title: "Consumption Fee (TRY)", align: "center", key: "consumptionFee" },
   {
@@ -34,13 +34,12 @@ const text = ref("My timeout is set to 2000.");
 const color = ref("blue-gray");
 const timeout = ref(2000);
 const companyDetails = ref([]);
-const selectedCompanyForDelete = ref(null);
-const selectedCompanyForEdit = ref(null);
-
+const selectedCompanyDetailForDelete = ref(null);
+const selectedCompanyDetailForEdit = ref(null);
+const route = useRoute(); // Get the current route
+const companyId = route.params.id;
 const getAllCompanyDetails = async () => {
-  debugger;
-  const route = useRoute(); // Get the current route
-  const companyId = route.params.id; // Get the companyId parameter
+  // Get the companyId parameter
   try {
     const response = await axios.get(
       `/companydetail/getCompanyDetailByCompanyId/${companyId}`
@@ -58,7 +57,7 @@ onMounted(() => {
 
 const deleteItem = async (item) => {
   // Store the company id when the delete button is clicked
-  selectedCompanyForDelete.value = item.companyDetailId;
+  selectedCompanyDetailForDelete.value = item.companyDetailId;
   dialogDelete.value = true;
 };
 
@@ -66,7 +65,7 @@ const deleteItemConfirm = async () => {
   // Use the stored company id to delete the company
   try {
     const response = await axios.delete(
-      `/companydetail/${selectedCompanyForDelete.value}`
+      `/companydetail/${selectedCompanyDetailForDelete.value}`
     );
 
     if (response.status === 200) {
@@ -90,12 +89,15 @@ const closeEditDialog = () => {
   dialogEdit.value = false;
 };
 const openEditDialog = (item) => {
-  selectedCompanyForEdit.value = item.companyId;
+  selectedCompanyDetailForEdit.value = item.companyDetailId;
   dialogEdit.value = true;
 };
 
 const openCreateDialog = () => {
   dialogCreate.value = true;
+};
+const goBack = () => {
+  router.go(-1);
 };
 </script>
 
@@ -114,93 +116,111 @@ const openCreateDialog = () => {
       </v-btn>
     </template>
   </v-snackbar>
-  <v-data-table
-    :headers="headers"
-    :items="companyDetails"
-    :sort-by="[{ key: 'calories', order: 'asc' }]"
-  >
-    <template v-slot:top>
-      <v-toolbar flat>
-        <v-toolbar-title>COMPANY DETAIL</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
+
+  <div class="d-flex flex-column">
+    <v-tooltip text="Back">
+      <template v-slot:activator="{ props }">
         <v-btn
-          prepend-icon="mdi-plus"
-          color="primary"
-          dark
-          class="mb-2"
-          @click="openCreateDialog()"
+          class="ma-2"
+          size="small"
+          icon="mdi-arrow-left"
+          @click="goBack()"
+          prepend-icon="mdi-arrow-right"
+          v-bind="props"
+        ></v-btn>
+      </template>
+    </v-tooltip>
+
+    <v-data-table
+      :headers="headers"
+      :items="companyDetails"
+      :sort-by="[{ key: 'calories', order: 'asc' }]"
+    >
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-toolbar-title>COMPANY DETAIL</v-toolbar-title>
+
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <v-btn
+            prepend-icon="mdi-plus"
+            color="primary"
+            dark
+            class="mb-2"
+            @click="openCreateDialog()"
+          >
+            Create New Department
+          </v-btn>
+
+          <CreateCompanyDetail
+            :dialog="dialogCreate"
+            @closeCreateDialog="closeCreateDialog"
+            :companyId="companyId"
+            @getAllCompanyDetails="getAllCompanyDetails"
+          ></CreateCompanyDetail>
+          <EditCompanyDetail
+            :dialog="dialogEdit"
+            :companyDetail="selectedCompanyDetailForEdit"
+            :companyId="companyId"
+            @closeEditDialog="closeEditDialog"
+            @getAllCompanyDetails="getAllCompanyDetails"
+          ></EditCompanyDetail>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+            <v-card>
+              <v-card-title class="text-h5"
+                >Are you sure you want to delete this item?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue-darken-1" variant="text" @click="closeDelete"
+                  >Cancel</v-btn
+                >
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template center v-slot:item.actions="{ item }">
+        <v-btn
+          icon="mdi-pencil"
+          color="blue"
+          class="ma-2"
+          size="small"
+          @click="openEditDialog(item)"
+        ></v-btn>
+
+        <v-btn
+          icon="mdi-delete"
+          color="red"
+          class="ma-2"
+          size="small"
+          @click="deleteItem(item)"
+        ></v-btn>
+      </template>
+
+      <template v-slot:item.isDiscountPrice="{ item }">
+        <v-chip
+          :color="item.isDiscountPrice ? 'green' : 'red'"
+          text-color="white"
+          label
+          small
+          >{{ item.isDiscountPrice ? "Discount" : "Not Discount" }}</v-chip
         >
-          Create New Department
-        </v-btn>
+      </template>
 
-        <CreateCompanyDetail
-          :dialog="dialogCreate"
-          @closeCreateDialog="closeCreateDialog"
-          @getAllCompanyDetails="getAllCompanyDetails"
-        ></CreateCompanyDetail>
-        <EditCompanyDetail
-          :dialog="dialogEdit"
-          :company="selectedCompanyForEdit"
-          @closeEditDialog="closeEditDialog"
-          @getAllCompanyDetails="getAllCompanyDetails"
-        ></EditCompanyDetail>
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
-            <v-card-title class="text-h5"
-              >Are you sure you want to delete this item?</v-card-title
-            >
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue-darken-1" variant="text" @click="closeDelete"
-                >Cancel</v-btn
-              >
-              <v-btn
-                color="blue-darken-1"
-                variant="text"
-                @click="deleteItemConfirm"
-                >OK</v-btn
-              >
-              <v-spacer></v-spacer>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-toolbar>
-    </template>
-    <template center v-slot:item.actions="{ item }">
-      <v-btn
-        icon="mdi-pencil"
-        color="blue"
-        class="ma-2"
-        size="small"
-        @click="openEditDialog(item)"
-      ></v-btn>
-
-      <v-btn
-        icon="mdi-delete"
-        color="red"
-        class="ma-2"
-        size="small"
-        @click="deleteItem(item)"
-      ></v-btn>
-    </template>
-
-    <template v-slot:item.isDiscountPrice="{ item }">
-      <v-chip
-        :color="item.isDiscountPrice ? 'green' : 'red'"
-        text-color="white"
-        label
-        small
-        >{{ item.isDiscountPrice ? "Discount" : "Not Discount" }}</v-chip
-      >
-    </template>
-
-    <template v-slot:item.subscriptionStart="{ item }">
-      <span>{{ formatDate(new Date(item.subscriptionStart)) }}</span>
-    </template>
-
-    <template v-slot:item.subscriptionEnd="{ item }">
-      <span>{{ formatDate(new Date(item.subscriptionEnd)) }}</span>
-    </template>
-  </v-data-table>
+      <template v-slot:item.usagePeriod="{ item }">
+        <span
+          >{{ formatDate(new Date(item.usagePeriod.startTime)) }} -
+          {{ formatDate(new Date(item.usagePeriod.endTime)) }}</span
+        >
+      </template>
+    </v-data-table>
+  </div>
 </template>
