@@ -42,7 +42,7 @@ export class AuthService {
 		response.cookie('refreshToken', refreshToken, {
 			httpOnly: true,
 			sameSite: 'none', // 'strict', 'lax', or 'none'
-			secure: true,
+			secure: false,
 		});
 
 		return {

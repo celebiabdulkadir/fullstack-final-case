@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompanyModule } from './company/company.module';
 import { CompanyDetailModule } from './companydetail/company-detail.module';
 import { config } from './database/postgresql/config';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 @Module({
 	imports: [
 		TypeOrmModule.forRoot(config),
@@ -14,10 +12,6 @@ import { join } from 'path';
 		UsersModule,
 		CompanyModule,
 		CompanyDetailModule,
-		ServeStaticModule.forRoot({
-			rootPath: join(__dirname, '../..', 'frontend', 'dist'),
-			exclude: ['/backend*'],
-		}),
 	],
 })
 export class AppModule {}

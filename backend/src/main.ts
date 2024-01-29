@@ -12,7 +12,7 @@ async function bootstrap() {
 		origin: [
 			'http://localhost:5000',
 			'http://localhost:3000',
-			'fullstack-final-case.vercel.app',
+			'https://fullstackfront.vercel.app',
 		],
 		credentials: true,
 	});
@@ -26,8 +26,8 @@ async function bootstrap() {
 			transform: true,
 		})
 	);
-
-	await app.listen(3000);
+	const port = process.env.PORT || 3000; // Fallback to 3000 if process.env.PORT is not set
+	await app.listen(port);
 }
 
 bootstrap();
