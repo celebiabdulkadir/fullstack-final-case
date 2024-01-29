@@ -61,7 +61,7 @@ app.component("Spinner", Spinner);
 
 app.mount("#app");
 
-axios.defaults.baseURL = "http://localhost:3000";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 axios.interceptors.request.use(
   (config) => {
